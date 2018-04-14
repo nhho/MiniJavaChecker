@@ -5,8 +5,8 @@ import visitor.TypeVisitor;
 public class NewArray extends Exp {
   public Exp e;
   
-  public NewArray(Exp ae) {
-    e=ae; 
+  public NewArray(Exp ae, int aline, int acolumn) { 
+    e=ae; line=aline; column=acolumn;
   }
 
   public void accept(Visitor v) {

@@ -3,12 +3,14 @@ import visitor.Visitor;
 import visitor.TypeVisitor;
 
 public class ClassDeclSimple extends ClassDecl {
-  public Identifier i;
+  public IdentifierType i;
   public VarDeclList vl;  
   public MethodDeclList ml;
+  public int line;
+  public int column;
  
-  public ClassDeclSimple(Identifier ai, VarDeclList avl, MethodDeclList aml) {
-    i=ai; vl=avl; ml=aml;
+  public ClassDeclSimple(IdentifierType ai, VarDeclList avl, MethodDeclList aml, int aline, int acolumn) {
+    i=ai; vl=avl; ml=aml; line=aline; column=acolumn;
   }
 
   public void accept(Visitor v) {

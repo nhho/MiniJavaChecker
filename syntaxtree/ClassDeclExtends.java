@@ -9,14 +9,16 @@ import visitor.TypeVisitor;
    }
 */
 public class ClassDeclExtends extends ClassDecl {
-  public Identifier i;
-  public Identifier j;
+  public IdentifierType i;
+  public IdentifierType j;
   public VarDeclList vl;      // Sequence of variable declarations
   public MethodDeclList ml;   // Sequence of method declarations
+  public int line;
+  public int column;
  
-  public ClassDeclExtends(Identifier ai, Identifier aj, 
-                  VarDeclList avl, MethodDeclList aml) {
-    i=ai; j=aj; vl=avl; ml=aml;
+  public ClassDeclExtends(IdentifierType ai, IdentifierType aj, 
+                  VarDeclList avl, MethodDeclList aml, int aline, int acolumn) {
+    i=ai; j=aj; vl=avl; ml=aml; line=aline; column=acolumn;
   }
 
   public void accept(Visitor v) {

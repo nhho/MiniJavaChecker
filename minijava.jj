@@ -25,7 +25,7 @@ SPECIAL_TOKEN : /* COMMENTS */
 | <MULTI_LINE_COMMENT: "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
 }
 
-TOKEN : 
+TOKEN :
 {
   < LPAREN: "(" >
 | < RPAREN: ")" >
@@ -34,22 +34,24 @@ TOKEN :
 | < LBRACE: "{" >
 | < RBRACE: "}" >
 | < SEMICOLON: ";" >
+| < COMMA: "," >
 | < DOT: "." >
 | < ASSIGN: "=" >
 | < LT: "<" >
 | < PLUS: "+" >
 | < MINUS: "-" >
-| < AND : "&" >   
-| < NOT : "!" >   
-| < BOOLEAN: "boolean" >   
+| < TIME: "*" >
+| < AND : "&&" >
+| < NOT : "!" >
+| < BOOLEAN: "boolean" >
 | < CLASS: "class" >
-| < INTERFACE: "interface" >
 | < ELSE: "else" >
 | < EXTENDS: "extends" >
 | < FALSE: "false" >
 | < IF: "if" >
 | < WHILE: "while" >
-| < INTEGER: "int" >   
+| < INTEGER: "int" >
+| < DOUBLE: "double" >
 | < LENGTH: "length" >
 | < MAIN: "main" >
 | < NEW: "new" >
@@ -60,7 +62,7 @@ TOKEN :
 | < THIS: "this" >
 | < TRUE: "true" >
 | < PRINT: "System.out.println" >
-| < VOID: "void" >         
+| < VOID: "void" >
 }
 
 TOKEN : /* LITERALS */
@@ -118,32 +120,35 @@ TOKEN : /* IDENTIFIERS */
 
 
 Program Goal() :
-{ MainClass m; 
+{ MainClass m;
   ClassDeclList cl = new ClassDeclList();
   ClassDecl c;
 }
 {
-  m=MainClass() 
+  m=MainClass()
   ( c=ClassDeclaration() { cl.addElement(c); } )*
   <EOF>
   { return new Program(m,cl); }
 }
 
 MainClass MainClass() :
-{ Identifier i1,i2;
+{ 
+  Token tok1, tok2, tok3, tok4;
+  IdentifierType i1;
+  Identifier i2;
   Statement s; }
 {
-  "class" i1=Identifier() "{"
-    "public" "static" "void" "main" "(" "String" "[" "]" i2=Identifier() ")"   
+  tok1=<CLASS> i1=IdentifierType() "{"
+    tok2=<PUBLIC> "static" tok4=<VOID> "main" "(" tok3=<STRING> "[" "]" i2=Identifier() ")"
     "{" s=Statement() "}"
   "}"
-  { return new MainClass(i1,i2,s); }
+  { return new MainClass(i1,i2,s,tok1.beginLine,tok1.beginColumn,tok2.beginLine,tok2.beginColumn,tok3.beginLine,tok3.beginColumn,tok4.beginLine,tok4.beginColumn); }
 }
 
-ClassDecl ClassDeclaration() :  
+ClassDecl ClassDeclaration() :
 { ClassDecl c; }
 {
-  ( 
+  (
   LOOKAHEAD(3)
   c=ClassDeclarationSimple()
 |
@@ -153,45 +158,48 @@ ClassDecl ClassDeclaration() :
 }
 
 ClassDecl ClassDeclarationSimple() :
-{ Identifier i;
+{ Token tok;
+  IdentifierType i;
   VarDecl v;
   VarDeclList vl = new VarDeclList();
   MethodDecl m;
   MethodDeclList ml = new MethodDeclList();
 }
 {
-  "class" i=Identifier() "{" ( v=VarDeclaration()    { vl.addElement(v); } )* 
-                             ( m=MethodDeclaration() { ml.addElement(m); } )* 
+  tok=<CLASS> i=IdentifierType() "{" ( v=VarDeclaration()    { vl.addElement(v); } )*
+                             ( m=MethodDeclaration() { ml.addElement(m); } )*
                        "}"
-  { return new ClassDeclSimple(i,vl,ml); }
+  { return new ClassDeclSimple(i,vl,ml,tok.beginLine,tok.beginColumn); }
 }
 
 ClassDecl ClassDeclarationExtends() :
-{ Identifier i1,i2;
+{ Token tok;
+  IdentifierType i1,i2;
   VarDecl v;
   VarDeclList vl = new VarDeclList();
   MethodDecl m;
   MethodDeclList ml = new MethodDeclList();
 }
 {
-  "class" i1=Identifier() "extends" i2=Identifier()
-                       "{"   ( v=VarDeclaration()    { vl.addElement(v); } )* 
-                             ( m=MethodDeclaration() { ml.addElement(m); } )* 
+  tok=<CLASS> i1=IdentifierType() "extends" i2=IdentifierType()
+                       "{"   ( v=VarDeclaration()    { vl.addElement(v); } )*
+                             ( m=MethodDeclaration() { ml.addElement(m); } )*
                        "}"
-  { return new ClassDeclExtends(i1,i2,vl,ml); }
+  { return new ClassDeclExtends(i1,i2,vl,ml,tok.beginLine,tok.beginColumn); }
 }
 
-VarDecl VarDeclaration() :  
+VarDecl VarDeclaration() :
 { Type t;
   Identifier i;
 }
-{ 
-  t=Type() i=Identifier() ";"      
+{
+  t=Type() i=Identifier() ";"
   { return new VarDecl(t,i); }
 }
 
-MethodDecl MethodDeclaration() :  
-{ 
+MethodDecl MethodDeclaration() :
+{
+  Token tok;
   Type t;
   Identifier i;
   FormalList fl = new FormalList();
@@ -199,14 +207,14 @@ MethodDecl MethodDeclaration() :
   VarDeclList vl = new VarDeclList();
   Statement s;
   StatementList sl = new StatementList();
-  Exp e; 
+  Exp e;
 }
 {
-  "public" t=Type() i=Identifier() 
-  "(" ( fl=FormalParameterList() )? ")"   
-  "{" ( LOOKAHEAD(2) v=VarDeclaration() { vl.addElement(v); } )* 
+  tok=<PUBLIC> t=Type() i=Identifier()
+  "(" ( fl=FormalParameterList() )? ")"
+  "{" ( LOOKAHEAD(2) v=VarDeclaration() { vl.addElement(v); } )*
       ( s=Statement() { sl.addElement(s); } )* "return" e=Expression() ";" "}"
-  { return new MethodDecl(t,i,fl,vl,sl,e); }
+  { return new MethodDecl(t,i,fl,vl,sl,e,tok.beginLine,tok.beginColumn); }
 }
 
 FormalList FormalParameterList() :
@@ -246,37 +254,51 @@ Type Type() :
 |
   t=IntegerType()
 |
-  t=IdentifierType()     
+  t=DoubleType()
+|
+  t=IdentifierType()
   )
   { return t; }
 }
 
 Type ArrayType() :
-{}
+{Token t;}
 {
-  "int" "[" "]"
-  { return new IntArrayType(); }
+  t=<INTEGER> "[" "]"
+  { return new IntArrayType(t.beginLine, t.beginColumn); }
 }
 
 Type BooleanType() :
-{}
+{Token t;}
 {
-  "boolean"
-  { return new BooleanType(); }
+  t=<BOOLEAN>
+  { return new BooleanType(t.beginLine, t.beginColumn); }
 }
 
 Type IntegerType() :
-{}
+{Token t;}
 {
-  "int"
-  { return new IntegerType(); }
+  t=<INTEGER>
+  { return new IntegerType(t.beginLine, t.beginColumn); }
 }
 
-Type IdentifierType() :
+Type DoubleType() :
+{Token t;}
+{
+  t=<DOUBLE>
+  { return new DoubleType(t.beginLine, t.beginColumn); }
+}
+
+IdentifierType IdentifierType() :
 { Token t; }
 {
+  (
   t=<IDENTIFIER>
-  { return new IdentifierType(t.image); }
+  { return new IdentifierType(t.image, t.beginLine, t.beginColumn); }
+|
+  t=<MAIN>
+  { return new IdentifierType("main", t.beginLine, t.beginColumn); }
+  )
 }
 
 Statement Statement() :
@@ -284,7 +306,7 @@ Statement Statement() :
 {
   (
   s=Block()
-| 
+|
   LOOKAHEAD(2)
   s=AssignmentStatement()
 |
@@ -301,9 +323,9 @@ Statement Statement() :
 }
 
 Statement Block() :
-{ 
+{
   Statement s;
-  StatementList sl = new StatementList(); 
+  StatementList sl = new StatementList();
 }
 {
   "{" ( s=Statement() { sl.addElement(s); } )* "}"
@@ -312,7 +334,7 @@ Statement Block() :
 
 Statement AssignmentStatement() :
 { Identifier i;
-  Exp e; 
+  Exp e;
 }
 {
   i=Identifier() "=" e=Expression() ";"
@@ -333,7 +355,7 @@ Statement IfStatement() :
   Statement s1,s2;
 }
 {
-  "if" "(" e=Expression() ")" s1=Statement() "else" s2=Statement() 
+  "if" "(" e=Expression() ")" s1=Statement() "else" s2=Statement()
   { return new If(e,s1,s2); }
 }
 
@@ -342,7 +364,7 @@ Statement WhileStatement() :
   Statement s;
 }
 {
-  "while" "(" e=Expression() ")" s=Statement() 
+  "while" "(" e=Expression() ")" s=Statement()
   { return new While(e,s); }
 }
 
@@ -354,210 +376,138 @@ Statement PrintStatement() :
 }
 
 Exp Expression() :
-{ Exp e; }
+{ Exp e1, e2; }
+{
+  e1=ExpressionF()
+  (
+  "&&" e2=ExpressionF()
+  { e1 = new And(e1,e2); }
+  )*
+  { return e1; }
+}
+
+Exp ExpressionF() :
+{ Exp e1, e2; }
+{
+  e1=ExpressionE()
+  (
+  "<" e2=ExpressionE()
+  { e1 = new LessThan(e1,e2); }
+  )*
+  { return e1; }
+}
+
+
+Exp ExpressionE() :
+{ Exp e1, e2; }
+{
+  e1=ExpressionD()
+  (
+  "+" e2=ExpressionD()
+  { e1 = new Plus(e1,e2); }
+|
+  "-" e2=ExpressionD()
+  { e1 = new Minus(e1,e2); }
+  )*
+  { return e1; }
+}
+
+Exp ExpressionD() :
+{ Exp e1, e2; }
+{
+  e1=ExpressionB()
+  (
+  "*" e2=ExpressionB()
+  { e1 = new Times(e1,e2); }
+  )*
+  { return e1; }
+}
+
+Exp ExpressionB() :
+{ Token t;
+  Exp e; }
 {
   (
-  LOOKAHEAD( PrimaryExpression() "&&" )
-  e=AndExpression()
+  t=<NOT> e=ExpressionB()
+  { e = new Not(e,t.beginLine,t.beginColumn); }
 |
-  LOOKAHEAD( PrimaryExpression() "<" )
-  e=CompareExpression()
-|
-  LOOKAHEAD( PrimaryExpression() "+" )
-  e=PlusExpression()
-|
-  LOOKAHEAD( PrimaryExpression() "-" )
-  e=MinusExpression()
-|
-  LOOKAHEAD( PrimaryExpression() "*" )
-  e=TimesExpression()
-|
-  LOOKAHEAD( PrimaryExpression() "[" )
-  e=ArrayLookup()
-|
-  LOOKAHEAD( PrimaryExpression() "." "length" )
-  e=ArrayLength()
-|
-  LOOKAHEAD( PrimaryExpression() "." Identifier() "(" )
-  e=MessageSend()
-| 
-  e=PrimaryExpression()
+  e=ExpressionA()
   )
   { return e; }
 }
 
-Exp AndExpression() :
-{ Exp e1,e2; } 
-{
-  e1=PrimaryExpression() "&&" e2=PrimaryExpression()
-  { return new And(e1,e2); }
-}
 
-Exp CompareExpression() :
-{ Exp e1,e2; } 
-{
-  e1=PrimaryExpression() "<" e2=PrimaryExpression()
-  { return new LessThan(e1,e2); }
-}
-
-Exp PlusExpression() :
-{ Exp e1,e2; } 
-{
-  e1=PrimaryExpression() "+" e2=PrimaryExpression()
-  { return new Plus(e1,e2); }
-}
-
-Exp MinusExpression() :
-{ Exp e1,e2; } 
-{
-  e1=PrimaryExpression() "-" e2=PrimaryExpression()
-  { return new Minus(e1,e2); }
-}
-
-Exp TimesExpression() :
-{ Exp e1,e2; } 
-{
-  e1=PrimaryExpression() "*" e2=PrimaryExpression()
-  { return new Times(e1,e2); }
-}
-
-Exp ArrayLookup() :
-{ Exp e1,e2; } 
-{
-  e1=PrimaryExpression() "[" e2=PrimaryExpression() "]"
-  { return new ArrayLookup(e1,e2); }
-}
-
-Exp ArrayLength() :
-{ Exp e; }
-{
-  e=PrimaryExpression() "." "length"
-  { return new ArrayLength(e); }
-}
-
-Exp MessageSend() :
-{ Exp e;
+Exp ExpressionA() :
+{ Exp e1, e2;
   Identifier i;
-  ExpList el = new ExpList(); 
-}
+  ExpList e3; }
 {
-  e=PrimaryExpression() "." i=Identifier() 
-  "(" ( el=ExpressionList() )? ")"
-  { return new Call(e,i,el); }
-}
-
-ExpList ExpressionList() :
-{ Exp e1,e2;
-  ExpList el = new ExpList();
-}
-{
-  e1=Expression() 
-  { el.addElement(e1); }
-  ( e2=ExpressionRest() { el.addElement(e2); })*
-  { return el; }
-}
-
-Exp ExpressionRest() :
-{ Exp e; }
-{
-  "," e=Expression()
-  { return e; }
+  e1=PrimaryExpression()
+  (
+  "[" e2=Expression() "]"
+  { e1 = new ArrayLookup(e1,e2); }
+|
+  LOOKAHEAD(3)
+  "." i=Identifier() "("
+  { e3 = new ExpList(); }
+  (
+  e2=Expression() { e3.addElement(e2); }
+  ( "," e2=Expression() { e3.addElement(e2); } )*
+  )? ")"
+  { e1 = new Call(e1,i,e3); }
+|
+  "." "length"
+  { e1 = new ArrayLength(e1); }
+  )*
+  { return e1; }
 }
 
 Exp PrimaryExpression() :
-{ Exp e; }
+{ Exp e;
+  Token t;
+  IdentifierType i;
+}
 { 
   (
-  e=IntegerLiteral()
+  t=<INTEGER_LITERAL>
+  { e = new IntegerLiteral(Integer.decode(t.image),t.beginLine,t.beginColumn); }
 |
-  e=TrueLiteral()
+  t=<TRUE>
+  { e = new True(t.beginLine,t.beginColumn); }
 |
-  e=FalseLiteral()
+  t=<FALSE>
+  { e = new False(t.beginLine,t.beginColumn); }
 |
-  e=IdentifierExp()
+  t=<IDENTIFIER>
+  { e = new IdentifierExp(t.image, t.beginLine, t.beginColumn); }
 |
-  e=ThisExpression()
+  t=<MAIN>
+  { e = new IdentifierExp("main", t.beginLine, t.beginColumn); }
+|
+  t=<THIS>
+  { e = new This(t.beginLine,t.beginColumn); }
 |
   LOOKAHEAD(3)
-  e=ArrayAllocationExpression()
+  t=<NEW> "int" "[" e=Expression() "]"
+  { e = new NewArray(e,t.beginLine,t.beginColumn); }
 |
-  e=AllocationExpression()
+  t=<NEW> i=IdentifierType() "(" ")"
+  { e = new NewObject(i,t.beginLine,t.beginColumn); }
 |   
-  e=NotExpression()
-|   
-  e=BracketExpression()
+  t=<LPAREN> e=Expression() ")"
   )
-  { return e; }
-}
-
-Exp IntegerLiteral() :
-{ Token t; }
-{
-  t=<INTEGER_LITERAL>
-  { return new IntegerLiteral(Integer.parseInt(t.image)); }
-}
-
-
-Exp TrueLiteral() :
-{}
-{
-  "true"
-  { return new True(); }
-}
-
-Exp FalseLiteral() :
-{}
-{
-  "false"
-  { return new False(); }
-}
-
-Exp IdentifierExp() :
-{ Token t; }
-{
-  t=<IDENTIFIER>
-  { return new IdentifierExp(t.image); }
-}
-
-Exp ThisExpression() :
-{}
-{
-  "this"
-  { return new This(); }
-}
-
-Exp ArrayAllocationExpression() :
-{ Exp e; }
-{
-  "new" "int" "[" e=Expression() "]"
-  { return new NewArray(e); }
-}
-
-Exp AllocationExpression() :
-{ Identifier i; }
-{
-  "new" i=Identifier() "(" ")"
-  { return new NewObject(i); }
-}
-
-Exp NotExpression() :
-{ Exp e; }
-{
-  "!" e=Expression() 
-  { return new Not(e); }
-}
-
-Exp BracketExpression() :
-{ Exp e; }
-{
-  "(" e=Expression() ")"
-  { return e; }
+  { e.line=t.beginLine; e.column=t.beginColumn; return e; }
 }
 
 Identifier Identifier() :
 { Token t; }
 {
+  (
   t=<IDENTIFIER>
-  { return new Identifier(t.image); }
+  { return new Identifier(t.image, t.beginLine, t.beginColumn); }
+|
+  t=<MAIN>
+  { return new Identifier("main", t.beginLine, t.beginColumn); }
+  )
 }
 

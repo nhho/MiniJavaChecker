@@ -7,8 +7,8 @@ public class Call extends Exp {
   public Identifier i;
   public ExpList el;
   
-  public Call(Exp ae, Identifier ai, ExpList ael) {
-    e=ae; i=ai; el=ael;
+  public Call(Exp ae, Identifier ai, ExpList ael) { 
+    e=ae; i=ai; el=ael; line=ae.line; column=ae.column;
   }
 
   public void accept(Visitor v) {

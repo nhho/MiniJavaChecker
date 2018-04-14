@@ -6,8 +6,8 @@ import visitor.TypeVisitor;
 public class LessThan extends Exp {
   public Exp e1,e2;
   
-  public LessThan(Exp ae1, Exp ae2) {
-    e1=ae1; e2=ae2;
+  public LessThan(Exp ae1, Exp ae2) { 
+    e1=ae1; e2=ae2; line=ae1.line; column=ae1.column;
   }
 
   public void accept(Visitor v) {

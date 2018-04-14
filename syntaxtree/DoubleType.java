@@ -2,8 +2,8 @@ package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
 
-public class IntegerType extends Type {
-  public IntegerType(int aline, int acolumn) { 
+public class DoubleType extends Type {
+  public DoubleType(int aline, int acolumn) { 
     line=aline; column=acolumn;
   }
   
@@ -16,10 +16,10 @@ public class IntegerType extends Type {
   }
 
   public String toString() {
-    return "int";
+    return "double";
   }
 
-  public IntegerType instance(int aline, int acolumn) {
-    return new IntegerType(aline, acolumn);
+  public DoubleType instance(int aline, int acolumn) {
+    return new DoubleType(aline, acolumn);
   }
 }

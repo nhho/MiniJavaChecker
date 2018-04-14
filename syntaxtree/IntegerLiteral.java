@@ -5,8 +5,8 @@ import visitor.TypeVisitor;
 public class IntegerLiteral extends Exp {
   public int i;
 
-  public IntegerLiteral(int ai) {
-    i=ai;
+  public IntegerLiteral(int ai, int aline, int acolumn) { 
+    i=ai; line=aline; column=acolumn;
   }
 
   public void accept(Visitor v) {

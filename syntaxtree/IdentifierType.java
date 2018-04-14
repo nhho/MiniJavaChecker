@@ -5,8 +5,8 @@ import visitor.TypeVisitor;
 public class IdentifierType extends Type {
   public String s;
 
-  public IdentifierType(String as) {
-    s=as;
+  public IdentifierType(String as, int aline, int acolumn) { 
+    s=as; line=aline; column=acolumn;
   }
 
   public void accept(Visitor v) {
@@ -15,5 +15,13 @@ public class IdentifierType extends Type {
 
   public Type accept(TypeVisitor v) {
     return v.visit(this);
+  }
+
+  public String toString() {
+    return s;
+  }
+
+  public InstanceType instance(int aline, int acolumn) {
+    return new InstanceType(s, aline, acolumn);
   }
 }

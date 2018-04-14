@@ -93,8 +93,15 @@ public class DepthFirstVisitor implements Visitor {
   public void visit(IntegerType n) {
   }
 
+  public void visit(DoubleType n) {
+  }
+
   // String s;
   public void visit(IdentifierType n) {
+  }
+
+  // String s;
+  public void visit(InstanceType n) {
   }
 
   // StatementList sl;

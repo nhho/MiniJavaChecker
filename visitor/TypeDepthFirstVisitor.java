@@ -14,7 +14,8 @@ public class TypeDepthFirstVisitor implements TypeVisitor {
     return null;
   }
   
-  // Identifier i1,i2;
+  // IdentifierType i1;
+  // Identifier i2;
   // Statement s;
   public Type visit(MainClass n) {
     n.i1.accept(this);
@@ -23,7 +24,7 @@ public class TypeDepthFirstVisitor implements TypeVisitor {
     return null;
   }
   
-  // Identifier i;
+  // IdentifierType i;
   // VarDeclList vl;
   // MethodDeclList ml;
   public Type visit(ClassDeclSimple n) {
@@ -37,8 +38,8 @@ public class TypeDepthFirstVisitor implements TypeVisitor {
     return null;
   }
  
-  // Identifier i;
-  // Identifier j;
+  // IdentifierType i;
+  // IdentifierType j;
   // VarDeclList vl;
   // MethodDeclList ml;
   public Type visit(ClassDeclExtends n) {
@@ -103,8 +104,17 @@ public class TypeDepthFirstVisitor implements TypeVisitor {
     return null;
   }
 
+  public Type visit(DoubleType n) {
+    return null;
+  }
+
   // String s;
   public Type visit(IdentifierType n) {
+    return null;
+  }
+
+  // String s;
+  public Type visit(InstanceType n) {
     return null;
   }
 
@@ -244,7 +254,7 @@ public class TypeDepthFirstVisitor implements TypeVisitor {
     return null;
   }
 
-  // Identifier i;
+  // IdentifierType i;
   public Type visit(NewObject n) {
     return null;
   }

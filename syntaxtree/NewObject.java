@@ -3,10 +3,10 @@ import visitor.Visitor;
 import visitor.TypeVisitor;
 
 public class NewObject extends Exp {
-  public Identifier i;
+  public IdentifierType i;
   
-  public NewObject(Identifier ai) {
-    i=ai;
+  public NewObject(IdentifierType ai, int aline, int acolumn) { 
+    i=ai; line=aline; column=acolumn;
   }
 
   public void accept(Visitor v) {

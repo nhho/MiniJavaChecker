@@ -2,12 +2,10 @@ package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
 
-public class Identifier {
+public class InstanceType extends Type {
   public String s;
-  public int line;
-  public int column;
 
-  public Identifier(String as, int aline, int acolumn) { 
+  public InstanceType(String as, int aline, int acolumn) { 
     s=as; line=aline; column=acolumn;
   }
 
@@ -19,7 +17,11 @@ public class Identifier {
     return v.visit(this);
   }
 
-  public String toString(){
+  public String toString() {
     return s;
+  }
+
+  public InstanceType instance(int aline, int acolumn) {
+    return new InstanceType(s, aline, acolumn);
   }
 }
